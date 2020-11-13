@@ -20,8 +20,8 @@ def check_name(name):
             return True
 
 
-queries = pd.read_csv('setting/data.csv')
-client = Client(host='localhost', user='default', password='qwerty123', port='9000', database='headhunter')
+queries = pd.read_csv('../settings/data.csv')
+client = Client(host='localhost', user='default', password='', port='9000', database='headhunter')
 client.execute("SELECT * from vacancies_short")
 
 while True:
