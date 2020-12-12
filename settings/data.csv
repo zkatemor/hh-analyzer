@@ -1,4 +1,5 @@
 type,level,main,key
+Навык,,BI,'Дашборд'
 Профессия,Линейный специалист,Analytics,"""Marketing Analyst"" OR ""Маркетинговый аналитик"""
 Профессия,Линейный специалист,Data Engineering,"""Инженер баз данных"" OR ""DWH Engineer"" OR ""Инженер данных"" OR ""Data Engineer"""
 Навык,,Analytics,"""Python"" AND ""data"" AND ""анализ"""
@@ -8,7 +9,6 @@ type,level,main,key
 Навык,,BI,"""d3.js"""
 Навык,,BI,"""Qlik"" OR ""Qlikview"" OR ""Qliksense"""
 Навык,,BI,"""Redash"""
-Навык,,BI,"""Дашборд"""
 Навык,,BI,"""Metabase"""
 Навык,,Analytics,"""NumPy"""
 Навык,,Analytics,"""Pandas"""
