@@ -27,6 +27,7 @@ future==0.18.2
 google-auth==1.23.0
 google-auth-oauthlib==0.4.2
 gspread==3.6.0
+gunicorn==20.0.4
 html5lib==1.0.1
 httplib2==0.18.1
 icalendar==4.0.7

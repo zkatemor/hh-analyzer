@@ -94,5 +94,5 @@ def schedule_by_salary_city(city_name):
 # word_cloud()
 # experience_by_salary()
 # experience_by_salary_city('Москва')
-schedule_by_salary()
+# schedule_by_salary()
 schedule_by_salary_city('Воронеж')

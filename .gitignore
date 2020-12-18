@@ -139,3 +139,8 @@ vacancies_1
 vacancies_2
 vacancies_3
 /vacancies_3
+
+venv
+*.pyc
+.DS_Store
+.env

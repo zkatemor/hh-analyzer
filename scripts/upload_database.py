@@ -17,7 +17,7 @@ for v in range(1, 4):
             for i in range(0, len(vacancy)):
                 try:
                     try:
-                        vacancy_gross = int(vacancy[i]['salary_gross'])
+                        salary_gross = int(vacancy[i]['salary_gross'])
                     except TypeError as E:
                         salary_gross = "cast(Null as Nullable(UInt8))"
 
