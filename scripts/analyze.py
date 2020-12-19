@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sshtunnel import SSHTunnelForwarder
 from wordcloud import WordCloud, STOPWORDS
 
-# client = Client(host='localhost', user='default', password='', port='9000', database='hh_analyze')
+client = Client(host='localhost', user='default', password='', port='9000', database='hh')
 
 mypkey = paramiko.RSAKey.from_private_key_file('../settings/aws_key.cer')
 sql_hostname = 'localhost'
@@ -104,17 +104,17 @@ def schedule_by_salary_city(client, city_name):
     fig.show()
 
 
-with SSHTunnelForwarder(
-        (ssh_host, ssh_port),
-        ssh_username=ssh_user,
-        ssh_pkey=mypkey,
-        ssh_password='',
-        remote_bind_address=(sql_hostname, sql_port)) as tunnel:
-    client = Client(host='localhost', user=sql_username,
-                    password=sql_password, database=sql_main_database,
-                    port=tunnel.local_bind_port)
+#with SSHTunnelForwarder(
+#        (ssh_host, ssh_port),
+#        ssh_username=ssh_user,
+#        ssh_pkey=mypkey,
+#        ssh_password='',
+#        remote_bind_address=(sql_hostname, sql_port)) as tunnel:
+#    client = Client(host='localhost', user=sql_username,
+#                    password=sql_password, database=sql_main_database,
+#                    port=tunnel.local_bind_port)
 
-    salary_by_city(client, 'Москва')
+schedule_by_salary_city(client, 'Москва')
 
 # dependence_wages_city()
 # salary_by_city('Воронеж')

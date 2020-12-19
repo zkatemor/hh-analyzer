@@ -7,7 +7,7 @@ downloads_path = str(Path.home() / "Downloads")
 vacancy = None
 data = None
 
-with zipfile.ZipFile(downloads_path + "/40M_41M_full.zip", "r") as z:
+with zipfile.ZipFile(downloads_path + "/archive-2020-12-15_15-26-42.zip", "r") as z:
     for filename in z.namelist():
         print(filename)
         with z.open(filename) as f:
@@ -18,6 +18,7 @@ with zipfile.ZipFile(downloads_path + "/40M_41M_full.zip", "r") as z:
             for i in range(0, len(vacancy)):
                 if 'name' in vacancy[i] and vacancy[i]['salary'] is not None:
                     vacancies_tmp = {
+                        'id': vacancy[i]['id'],
                         'name': vacancy[i]['name'],
                         'salary_from': vacancy[i]['salary']['from'],
                         'salary_to': vacancy[i]['salary']['to'],
@@ -37,5 +38,5 @@ with zipfile.ZipFile(downloads_path + "/40M_41M_full.zip", "r") as z:
                     vacancies.append(vacancies_tmp)
                     print(vacancies_tmp)
 
-            with open(f'vacancies_1/new{filename[filename.find("/") + 1:]}', 'w') as outfile:
+            with open(f'/home/rfnz/Projects/hh-analyzer/vacan_3/new{filename[filename.find("/") + 1:]}', 'w') as outfile:
                 json.dump(vacancies, outfile)

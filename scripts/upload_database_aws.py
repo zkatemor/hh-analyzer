@@ -16,8 +16,6 @@ ssh_host = 'ec2-3-20-222-181.us-east-2.compute.amazonaws.com'
 ssh_user = 'ubuntu'
 ssh_port = 22
 
-SQL_OPTIMIZE = 'OPTIMIZE TABLE vacancies'
-
 with SSHTunnelForwarder(
         (ssh_host, ssh_port),
         ssh_username=ssh_user,
@@ -45,12 +43,12 @@ with SSHTunnelForwarder(
                             salary_gross = "cast(Null as Nullable(UInt8))"
 
                         try:
-                            salary_to = int(vacancy[i]['salary_to'])
+                            salary_to = float(vacancy[i]['salary_to'])
                         except TypeError as E:
                             salary_to = "cast(Null as Nullable(Float64))"
 
                         try:
-                            salary_from = int(vacancy[i]['salary_from'])
+                            salary_from = float(vacancy[i]['salary_from'])
                         except TypeError as E:
                             salary_from = "cast(Null as Nullable(Float64))"
 
@@ -72,6 +70,5 @@ with SSHTunnelForwarder(
                         tuple_to_insert = tuple(vacancies_short_list)
                         print(tuple_to_insert)
                         client.execute('INSERT INTO vacancies VALUES', [tuple_to_insert])
-                        client.execute(SQL_OPTIMIZE)
                     except Exception as e:
                         print(str(e))

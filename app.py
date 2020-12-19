@@ -19,7 +19,9 @@ app.layout = html.Div([
                   'Облако слов для высокооплачиваемых вакансий']],
         value='Средняя зарплата по городам'
     ),
-    html.Div(id='display-value')
+    html.Div(id='display-value'),
+    html.Div(["Input: ",
+              dcc.Input(id='my-input', value='initial value', type='text')]),
 ])
 
 

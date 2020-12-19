@@ -1,9 +1,9 @@
-CREATE TABLE hh_salary.vacancies
-(`name` String,
+CREATE TABLE headhunter_salary.vacancies
+(`id` String,
+`name` String,
 `salary_from` Nullable(Float64),
 `salary_to` Nullable(Float64),
 `currency` String,
-`salary_gross` Nullable(UInt8),
 `experience` String,
 `schedule` String,
 `created_at` DateTime,
@@ -13,4 +13,4 @@ CREATE TABLE hh_salary.vacancies
 `area_url` String,
 `area_id` String,
 `area_name` String)
-ENGINE = ReplacingMergeTree ORDER BY name
+ENGINE = ReplacingMergeTree ORDER BY id
