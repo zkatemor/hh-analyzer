@@ -11,11 +11,13 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
 
 app.layout = html.Div([
-    html.H2('Hello World'),
+    html.H2('Job Analysis at Headhunter'),
     dcc.Dropdown(
         id='dropdown',
-        options=[{'label': i, 'value': i} for i in ['LA', 'NYC', 'MTL']],
-        value='LA'
+        options=[{'label': i, 'value': i} for i in
+                 ['Средняя зарплата по городам', 'Средняя зарплата по определенному городу',
+                  'Облако слов для высокооплачиваемых вакансий']],
+        value='Средняя зарплата по городам'
     ),
     html.Div(id='display-value')
 ])
