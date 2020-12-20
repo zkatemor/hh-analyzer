@@ -8,7 +8,7 @@ import paramiko
 import sshtunnel
 from clickhouse_driver import Client
 
-from scripts.analyze import salary_by_city
+from scripts.analyze import salary_by_city, experience_by_salary, dependence_wages_city, experience_by_salary_city
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -62,8 +62,11 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='dropdown',
         options=[{'label': i, 'value': i} for i in
-                 ['Средняя зарплата по городам', 'Средняя зарплата по определенному городу',
-                  'Облако слов для высокооплачиваемых вакансий']],
+                 ['Средняя зарплата по городам',
+                  'Средняя зарплата по определенному городу',
+                  'Средняя зарплата в зависимости от опыта',
+                  'Средняя зарплата в зависимости от опыта по городу'
+                  ]],
         value='Средняя зарплата по городам'
     ),
     dcc.Graph(id="graph"),
@@ -77,7 +80,15 @@ def display_value(task, city):
     open_ssh_tunnel()
     tunnel.start()
     open_remote_db()
-    fig = salary_by_city(client, city)
+
+    if task == 'Средняя зарплата по городам':
+        fig = dependence_wages_city(client=client)
+    elif task == 'Средняя зарплата по определенному городу':
+        fig = salary_by_city(client=client, city_name=city)
+    elif task == 'Средняя зарплата в зависимости от опыта':
+        fig = experience_by_salary(client=client)
+    elif task == 'Средняя зарплата в зависимости от опыта по городу':
+        fig = experience_by_salary_city(client=client, city_name=city)
     return fig
 
 
