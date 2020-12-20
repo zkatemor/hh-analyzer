@@ -3,23 +3,22 @@ from clickhouse_driver import Client
 import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from sshtunnel import SSHTunnelForwarder
 from wordcloud import WordCloud, STOPWORDS
 
-client = Client(host='localhost', user='default', password='', port='9000', database='hh')
+#client = Client(host='localhost', user='default', password='', port='9000', database='headhunter_salary')
 
-mypkey = paramiko.RSAKey.from_private_key_file('../settings/aws_key.cer')
-sql_hostname = 'localhost'
-sql_username = 'default'
-sql_password = ''
-sql_main_database = 'hh_analyze'
-sql_port = 9000
+#mypkey = paramiko.RSAKey.from_private_key_file('../settings/aws_key.cer')
+#sql_hostname = 'localhost'
+#sql_username = 'default'
+#sql_password = ''
+#sql_main_database = 'hh_analyze'
+#sql_port = 9000
 
-ssh_host = 'ec2-3-20-222-181.us-east-2.compute.amazonaws.com'
-ssh_user = 'ubuntu'
-ssh_port = 22
-
-SQL_OPTIMIZE = 'OPTIMIZE TABLE vacancies'
+#ssh_host = 'ec2-3-20-222-181.us-east-2.compute.amazonaws.com'
+#ssh_user = 'ubuntu'
+#ssh_port = 22
 
 
 def dependence_wages_city(client):
@@ -36,13 +35,17 @@ def dependence_wages_city(client):
 def salary_by_city(client, city_name):
     """ Средняя зарплата по определенному городу """
     data = client.execute(
-        f"SELECT created_at, avg(salary_from + salary_to) as salary FROM vacancies WHERE city='{city_name}' GROUP BY created_at HAVING salary <= 1000000")
+        f"SELECT toDate(created_at) as date_local, avg(salary_from + salary_to) as salary FROM vacancies WHERE city='{city_name}' "
+        f"GROUP BY date_local  HAVING salary <= 1000000")
 
     df = pd.DataFrame(data, columns=['created_at', 'salary'])
-    df = df.groupby(df['created_at'].dt.strftime('%B'))['salary'].mean().reset_index()
+    # df = df.groupby(df['created_at'].dt.strftime('%B'))['salary'].mean().reset_index()
     print(df)
-    fig = px.bar(df, x="created_at", y="salary", title=f'Средняя зарплата, {city_name}')
-    fig.show()
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df['created_at'], y=df['salary'],
+                             mode='lines+markers',
+                             name=f'Средняя зарплата, {city_name}'))
+    return fig
 
 
 def word_cloud(client):
@@ -114,11 +117,9 @@ def schedule_by_salary_city(client, city_name):
 #                    password=sql_password, database=sql_main_database,
 #                    port=tunnel.local_bind_port)
 
-schedule_by_salary_city(client, 'Москва')
-
-# dependence_wages_city()
-# salary_by_city('Воронеж')
-# word_cloud()
-# experience_by_salary()
-# experience_by_salary_city('Москва')
-# schedule_by_salary()
+# salary_by_city(client, 'Ярославль')
+# dependence_wages_city(client)
+# word_cloud(client)
+# experience_by_salary(client)
+# experience_by_salary_city(client, 'Москва')
+# schedule_by_salary(client)
