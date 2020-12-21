@@ -4,6 +4,7 @@ import os
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import pandas as pd
 import paramiko
 import sshtunnel
 from clickhouse_driver import Client
@@ -26,6 +27,8 @@ sql_port = 9000
 ssh_host = 'ec2-3-20-222-181.us-east-2.compute.amazonaws.com'
 ssh_user = 'ubuntu'
 ssh_port = 22
+
+cities = pd.read_csv('settings/cities.csv')['city']
 
 
 def open_ssh_tunnel():
@@ -56,7 +59,7 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='city',
         options=[{'label': i, 'value': i} for i in
-                 ['Москва', 'Воронеж', 'Санкт-Петербург']],
+                 cities],
         value='Москва'
     ),
     dcc.Dropdown(

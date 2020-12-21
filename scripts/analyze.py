@@ -2,6 +2,7 @@ import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+from clickhouse_driver import Client
 from wordcloud import WordCloud, STOPWORDS
 
 
@@ -101,3 +102,12 @@ def schedule_by_salary_city(client, city_name):
     print(df)
     fig = px.bar(df, x="schedule", y="salary", title=f"Schedule, {city_name}")
     return fig
+
+
+def popular_city(client):
+    data = client.execute(
+        'select count(id) as count_vacancies, city from headhunter_salary.vacancies '
+        'group by city having count_vacancies>=1000 order by count_vacancies desc')
+
+    df = pd.DataFrame(data, columns=['count', 'city'])
+    df['city'].to_csv('cities.csv')
