@@ -58,7 +58,7 @@ def experience_by_salary(client, city_name, cities):
             f"WHERE city='{city_name}' "
             f"GROUP BY experience")
         df = pd.DataFrame(data, columns=['experience', 'salary'])
-        fig = px.bar(df, x="experience", y="salary", title=f"Experience, {city_name}", height=800)
+        fig = px.bar(df, x="experience", y="salary", title=f"Experience, {city_name}")
         return fig
     else:
         data = client.execute(
@@ -66,7 +66,7 @@ def experience_by_salary(client, city_name, cities):
             f"where city in {tuple(cities)}"
             f"GROUP BY experience")
         df = pd.DataFrame(data, columns=['experience', 'salary'])
-        fig = px.bar(df, x="experience", y="salary", title="Experience", height=800)
+        fig = px.bar(df, x="experience", y="salary", title="Experience")
 
     return fig
 
@@ -92,7 +92,7 @@ def schedule_by_salary(client, city_name, cities):
         print(data)
         df = pd.DataFrame(data, columns=['schedule', 'salary'])
         print(df)
-        fig = px.bar(df, x="schedule", y="salary", title=f"Schedule, {city_name}", height=800)
+        fig = px.bar(df, x="schedule", y="salary", title=f"Schedule, {city_name}")
 
     return fig
 
@@ -142,7 +142,8 @@ def employer_by_salary(client, city_name, cities):
     return fig
 
 
-def popular_city(client):
+def popular_city_salary(client, cities):
+    """Средняя заработная плата в городах"""
     data = client.execute(
         'select count(id) as count_vacancies, city from headhunter_salary.vacancies '
         'group by city having count_vacancies>=1000 order by count_vacancies desc')
@@ -181,6 +182,52 @@ def high_salary(client, city_name):
     values = [data_100[0][0], data_150[0][0], data_200[0][0], data_250[0][0], data_300[0][0]]
     fig = go.Figure(data=[go.Pie(labels=labels, values=values)])
     fig.update_traces(textposition='inside', textinfo='percent+label')
+    return fig
+
+
+def vacancies_by_count(client, city_name, cities):
+    """Наиболее востребованные вакансии"""
+    if not city_name:
+        data = client.execute(
+            f"select count(id) as count_vacancies, name from vacancies "
+            f"where city in {tuple(cities)}"
+            f"group by name order by count_vacancies desc limit 10"
+        )
+    else:
+        data = client.execute(
+            f"select count(id) as count_vacancies, name from vacancies "
+            f"where city='{city_name}'"
+            f"group by name order by count_vacancies desc limit 10"
+        )
+
+    df = pd.DataFrame(data, columns=['count', 'vacancies'])
+    print(df)
+    fig = go.Figure(data=[go.Pie(labels=df['vacancies'], values=df['count'], hole=.3)])
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+
+    return fig
+
+
+def vacancies_by_salary(client, city_name, cities):
+    """Наиболее оплачиваемые вакансии"""
+    if not city_name:
+        data = client.execute(
+            f"select count(id) as count_vacancies, name, round(avg(salary_from + salary_to)) as salary from vacancies "
+            f"where city in {tuple(cities)}"
+            f"group by name having count_vacancies > 2 order by salary desc limit 10"
+        )
+    else:
+        data = client.execute(
+            f"select count(id) as count_vacancies, name, round(avg(salary_from + salary_to)) as salary from vacancies "
+            f"where city='{city_name}'"
+            f"group by name having count_vacancies > 2 order by salary desc limit 10"
+        )
+
+    df = pd.DataFrame(data, columns=['count', 'vacancies', 'salary'])
+    print(df)
+    fig = go.Figure(data=[go.Pie(labels=df['vacancies'], values=df['salary'], hole=.3)])
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+
     return fig
 
 # client = Client(host='localhost', user='default', password='', port='9000', database='headhunter_salary')

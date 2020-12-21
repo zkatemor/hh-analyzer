@@ -10,7 +10,7 @@ import sshtunnel
 from clickhouse_driver import Client
 
 from scripts.analyze import experience_by_salary, dependence_wages_city, schedule_by_salary, \
-    employer_by_count_vacancies, employer_by_salary, high_salary
+    employer_by_count_vacancies, employer_by_salary, high_salary, vacancies_by_count, vacancies_by_salary
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -82,12 +82,14 @@ app.layout = html.Div([
                   'Средняя зарплата по графику работы',
                   'Работодатели с большим количеством открытых вакансий',
                   'Работодатели с высокой заработной платой',
-                  'Распределение высокой заработной платы'
+                  'Распределение высокой заработной платы',
+                  'Наиболее востребованные вакансии',
+                  'Наиболее оплачиваемые вакансии'
                   ]],
         value='Средняя зарплата за последние месяцы',
         clearable=False
     ),
-    dcc.Graph(id="graph", style={'display': 'inline-block', 'width': '100%', 'height': '100%'}),
+    dcc.Graph(id="graph", style={'height': '80vh'}),
 ],
     style={'display': 'inline-block', 'width': '100%', 'height': '100%'})
 
@@ -113,6 +115,10 @@ def display_value(task, city):
         fig = employer_by_salary(client=client, city_name=city, cities=cities)
     elif task == 'Распределение высокой заработной платы':
         fig = high_salary(client=client, city_name=city)
+    elif task == 'Наиболее востребованные вакансии':
+        fig = vacancies_by_count(client=client, city_name=city, cities=cities)
+    elif task == 'Наиболее оплачиваемые вакансии':
+        fig = vacancies_by_salary(client=client, city_name=city, cities=cities)
     return fig
 
 
