@@ -18,7 +18,8 @@ def dependence_wages_city(client, city_name, cities):
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df['created_at'], y=df['salary'],
                                  mode='lines+markers',
-                                 name=f'Средняя зарплата, {city_name}'))
+                                 name=f'Средняя зарплата, {city_name}',
+                                 line_shape='spline'))
     else:
         data = client.execute(
             f"SELECT toDate(created_at) as date_local, avg(salary_from + salary_to) as salary FROM vacancies "
@@ -29,12 +30,13 @@ def dependence_wages_city(client, city_name, cities):
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df['created_at'], y=df['salary'],
                                  mode='lines+markers',
-                                 name=f'Средняя зарплата'))
+                                 name=f'Средняя зарплата',
+                                 line_shape='spline'))
 
     return fig
 
 
-def word_cloud(client):
+def word_cloud(client, cities):
     """ Облако слов для высокооплачиваемых вакансий """
     data = client.execute(
         f"SELECT name, avg(salary_from + salary_to) as salary FROM vacancies "
@@ -62,27 +64,134 @@ def experience_by_salary(client, city_name, cities):
         return fig
     else:
         data = client.execute(
-            f"SELECT experience, avg(salary_from + salary_to) as salary FROM vacancies "
-            f"where city in {tuple(cities)}"
-            f"GROUP BY experience")
-        df = pd.DataFrame(data, columns=['experience', 'salary'])
-        fig = px.bar(df, x="experience", y="salary", title="Experience")
+            f"SELECT city, experience, round(avg(salary_from + salary_to)) as salary FROM vacancies "
+            f"where city in {tuple(cities[:30])}"
+            f"GROUP BY city, experience order by salary")
+        df = pd.DataFrame(data, columns=['city', 'experience', 'salary'])
+        print(df)
+
+        df_1 = df.loc[df['experience'] == 'Нет опыта']
+        df_2 = df.loc[df['experience'] == 'От 1 года до 3 лет']
+        df_3 = df.loc[df['experience'] == 'От 3 до 6 лет']
+        df_4 = df.loc[df['experience'] == 'Более 6 лет']
+
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            y=df_1['city'],
+            x=df_1['salary'],
+            name='Нет опыта',
+            orientation='h',
+            marker=dict(
+                color='rgba(246, 78, 139, 0.6)'
+            )
+        ))
+
+        fig.add_trace(go.Bar(
+            y=df_2['city'],
+            x=df_2['salary'],
+            name='От 1 года до 3 лет',
+            orientation='h',
+            marker=dict(
+                color='rgba(58, 71, 80, 0.6)'
+            )
+        ))
+
+        fig.add_trace(go.Bar(
+            y=df_3['city'],
+            x=df_3['salary'],
+            name='От 3 до 6 лет',
+            orientation='h',
+            marker=dict(
+                color='rgba(255, 99, 71, 0.5)'
+            )
+        ))
+
+        fig.add_trace(go.Bar(
+            y=df_4['city'],
+            x=df_4['salary'],
+            name='Более 6 лет',
+            orientation='h',
+            marker=dict(
+                color='rgba(123, 174, 71, 0.5)'
+            )
+        ))
+
+        fig.update_layout(barmode='stack')
 
     return fig
 
 
 def schedule_by_salary(client, city_name, cities):
-    """Средняя зарплата по графику работы"""
+    """Средняя зарплата в зависимости от графика работы"""
     if not city_name:
         data = client.execute(
-            "SELECT schedule, avg(salary_from + salary_to) as salary FROM vacancies  "
-            f"where city in {tuple(cities)}"
-            "GROUP BY schedule"
+            f"SELECT city, schedule, avg(salary_from + salary_to) as salary FROM vacancies  "
+            f"where city in {tuple(cities[:30])}"
+            f"GROUP BY city, schedule ORDER BY salary"
         )
-        print(data)
-        df = pd.DataFrame(data, columns=['schedule', 'salary'])
+        df = pd.DataFrame(data, columns=['city', 'schedule', 'salary'])
+        df = df.dropna()
         print(df)
-        fig = px.bar(df, x="schedule", y="salary", title="Schedule", height=800)
+
+        df_1 = df.loc[df['schedule'] == 'Полный день']
+        df_2 = df.loc[df['schedule'] == 'Удаленная работа']
+        df_3 = df.loc[df['schedule'] == 'Гибкий график']
+        df_4 = df.loc[df['schedule'] == 'Сменный график']
+        df_5 = df.loc[df['schedule'] == 'Вахтовый метод']
+
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            y=df_1['city'],
+            x=df_1['salary'],
+            name='Полный день',
+            orientation='h',
+            marker=dict(
+                color='rgba(246, 78, 139, 0.6)'
+            )
+        ))
+
+        fig.add_trace(go.Bar(
+            y=df_2['city'],
+            x=df_2['salary'],
+            name='Удаленная работа',
+            orientation='h',
+            marker=dict(
+                color='rgba(58, 71, 80, 0.6)'
+            )
+        ))
+
+        fig.add_trace(go.Bar(
+            y=df_3['city'],
+            x=df_3['salary'],
+            name='Гибкий график',
+            orientation='h',
+            marker=dict(
+                color='rgba(255, 99, 71, 0.5)'
+            )
+        ))
+
+        fig.add_trace(go.Bar(
+            y=df_4['city'],
+            x=df_4['salary'],
+            name='Сменный график',
+            orientation='h',
+            marker=dict(
+                color='rgba(123, 174, 71, 0.5)'
+            )
+        ))
+
+        fig.add_trace(go.Bar(
+            y=df_5['city'],
+            x=df_5['salary'],
+            name='Вахтовый метод',
+            orientation='h',
+            marker=dict(
+                color='rgba(123, 174, 216, 0.6)'
+            )
+        ))
+
+        fig.update_layout(barmode='stack')
+        # fig = px.bar(df, x="schedule", y="salary", title="Schedule", height=800)
     else:
         data = client.execute(
             f"SELECT schedule, avg(salary_from + salary_to) as salary FROM vacancies  "
@@ -93,6 +202,91 @@ def schedule_by_salary(client, city_name, cities):
         df = pd.DataFrame(data, columns=['schedule', 'salary'])
         print(df)
         fig = px.bar(df, x="schedule", y="salary", title=f"Schedule, {city_name}")
+
+    return fig
+
+
+def employment_by_salary(client, city_name, cities):
+    """Средняя зарплата в зависимости от типа занятости"""
+    if not city_name:
+        data = client.execute(
+            f"SELECT city, employment, avg(salary_from + salary_to) as salary FROM vacancies  "
+            f"where city in {tuple(cities[:30])}"
+            f"GROUP BY city, employment ORDER BY salary"
+        )
+        df = pd.DataFrame(data, columns=['city', 'employment', 'salary'])
+        df = df.dropna()
+        print(df)
+
+        df_1 = df.loc[df['employment'] == 'Частичная занятость']
+        df_2 = df.loc[df['employment'] == 'Полная занятость']
+        df_3 = df.loc[df['employment'] == 'Проектная работа']
+        df_4 = df.loc[df['employment'] == 'Волонтерство']
+        df_5 = df.loc[df['employment'] == 'Стажировка']
+
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            y=df_1['city'],
+            x=df_1['salary'],
+            name='Частичная занятость',
+            orientation='h',
+            marker=dict(
+                color='rgba(246, 78, 139, 0.6)'
+            )
+        ))
+
+        fig.add_trace(go.Bar(
+            y=df_2['city'],
+            x=df_2['salary'],
+            name='Полная занятость',
+            orientation='h',
+            marker=dict(
+                color='rgba(58, 71, 80, 0.6)'
+            )
+        ))
+
+        fig.add_trace(go.Bar(
+            y=df_3['city'],
+            x=df_3['salary'],
+            name='Проектная работа',
+            orientation='h',
+            marker=dict(
+                color='rgba(255, 99, 71, 0.5)'
+            )
+        ))
+
+        fig.add_trace(go.Bar(
+            y=df_4['city'],
+            x=df_4['salary'],
+            name='Волонтерство',
+            orientation='h',
+            marker=dict(
+                color='rgba(123, 174, 71, 0.5)'
+            )
+        ))
+
+        fig.add_trace(go.Bar(
+            y=df_5['city'],
+            x=df_5['salary'],
+            name='Стажировка',
+            orientation='h',
+            marker=dict(
+                color='rgba(123, 174, 216, 0.6)'
+            )
+        ))
+
+        fig.update_layout(barmode='stack')
+        # fig = px.bar(df, x="schedule", y="salary", title="Schedule", height=800)
+    else:
+        data = client.execute(
+            f"SELECT employment, avg(salary_from + salary_to) as salary FROM vacancies  "
+            f"WHERE city='{city_name}' "
+            f"GROUP BY employment"
+        )
+        print(data)
+        df = pd.DataFrame(data, columns=['employment', 'salary'])
+        print(df)
+        fig = px.bar(df, x="employment", y="salary")
 
     return fig
 
@@ -230,5 +424,48 @@ def vacancies_by_salary(client, city_name, cities):
 
     return fig
 
+
+def employment_graph(client, city_name, cities):
+    """Изменение зарплаты по месяцам в завимисости от типа занятости"""
+    if city_name:
+        data = client.execute(
+            f"SELECT employment, toDate(created_at) as date_local, avg(salary_from + salary_to) as salary FROM vacancies "
+            f"WHERE city='{city_name}' "
+            f"GROUP BY date_local, employment HAVING salary <= 1000000 order by date_local")
+
+    else:
+        data = client.execute(
+            f"SELECT employment, toDate(created_at) as date_local, avg(salary_from + salary_to) as salary FROM vacancies "
+            f"where city in {tuple(cities)} GROUP BY date_local, employment ORDER BY date_local")
+
+    df = pd.DataFrame(data, columns=['employment', 'created_at', 'salary'])
+    df = df.dropna()
+
+    df_1 = df.loc[df['employment'] == 'Частичная занятость']
+    df_2 = df.loc[df['employment'] == 'Полная занятость']
+    df_3 = df.loc[df['employment'] == 'Проектная работа']
+    df_4 = df.loc[df['employment'] == 'Волонтерство']
+    df_5 = df.loc[df['employment'] == 'Стажировка']
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_1['created_at'], y=df_1['salary'], name="Частичная занятость",
+                             hoverinfo='text+name',
+                             line_shape='spline'))
+    fig.add_trace(go.Scatter(x=df_2['created_at'], y=df_2['salary'], name="Полная занятость",
+                             hoverinfo='text+name',
+                             line_shape='spline'))
+    fig.add_trace(go.Scatter(x=df_3['created_at'], y=df_3['salary'], name="Проектная работа",
+                             hoverinfo='text+name',
+                             line_shape='spline'))
+    fig.add_trace(go.Scatter(x=df_4['created_at'], y=df_4['salary'], name="Волонтерство",
+                             hoverinfo='text+name',
+                             line_shape='spline'))
+    fig.add_trace(go.Scatter(x=df_5['created_at'], y=df_5['salary'], name="Стажировка",
+                             hoverinfo='text+name',
+                             line_shape='spline'))
+    fig.update_traces(hoverinfo='text+name', mode='lines+markers')
+    return fig
+
 # client = Client(host='localhost', user='default', password='', port='9000', database='headhunter_salary')
-# employer_by_salary(client, "Москва")
+# cities = pd.read_csv('../settings/cities.csv')['city']
+# schedule_by_salary(client, "", cities)

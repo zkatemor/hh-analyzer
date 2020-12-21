@@ -10,7 +10,8 @@ import sshtunnel
 from clickhouse_driver import Client
 
 from scripts.analyze import experience_by_salary, dependence_wages_city, schedule_by_salary, \
-    employer_by_count_vacancies, employer_by_salary, high_salary, vacancies_by_count, vacancies_by_salary
+    employer_by_count_vacancies, employer_by_salary, high_salary, vacancies_by_count, vacancies_by_salary, \
+    employment_graph, employment_by_salary
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -79,12 +80,14 @@ app.layout = html.Div([
         options=[{'label': i, 'value': i} for i in
                  ['Средняя зарплата за последние месяцы',
                   'Средняя зарплата в зависимости от опыта',
-                  'Средняя зарплата по графику работы',
+                  'Средняя зарплата в зависимости от графика работы',
+                  'Средняя зарплата в зависимости от типа занятости',
                   'Работодатели с большим количеством открытых вакансий',
                   'Работодатели с высокой заработной платой',
                   'Распределение высокой заработной платы',
                   'Наиболее востребованные вакансии',
-                  'Наиболее оплачиваемые вакансии'
+                  'Наиболее оплачиваемые вакансии',
+                  'Изменение зарплаты по месяцам в завимисости от типа занятости'
                   ]],
         value='Средняя зарплата за последние месяцы',
         clearable=False
@@ -107,7 +110,7 @@ def display_value(task, city):
         fig = dependence_wages_city(client=client, city_name=city, cities=cities)
     elif task == 'Средняя зарплата в зависимости от опыта':
         fig = experience_by_salary(client=client, city_name=city, cities=cities)
-    elif task == 'Средняя зарплата по графику работы':
+    elif task == 'Средняя зарплата в зависимости от графика работы':
         fig = schedule_by_salary(client=client, city_name=city, cities=cities)
     elif task == 'Работодатели с большим количеством открытых вакансий':
         fig = employer_by_count_vacancies(client=client, city_name=city)
@@ -119,6 +122,10 @@ def display_value(task, city):
         fig = vacancies_by_count(client=client, city_name=city, cities=cities)
     elif task == 'Наиболее оплачиваемые вакансии':
         fig = vacancies_by_salary(client=client, city_name=city, cities=cities)
+    elif task == 'Изменение зарплаты по месяцам в завимисости от типа занятости':
+        fig = employment_graph(client=client, city_name=city, cities=cities)
+    elif task == 'Средняя зарплата в зависимости от типа занятости':
+        fig = employment_by_salary(client=client, city_name=city, cities=cities)
     return fig
 
 
