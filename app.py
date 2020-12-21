@@ -9,7 +9,8 @@ import paramiko
 import sshtunnel
 from clickhouse_driver import Client
 
-from scripts.analyze import experience_by_salary, dependence_wages_city, schedule_by_salary
+from scripts.analyze import experience_by_salary, dependence_wages_city, schedule_by_salary, \
+    employer_by_count_vacancies, employer_by_salary, high_salary
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -58,10 +59,10 @@ def open_remote_db():
 def open_local_db():
     global client
     client = Client(host='localhost',
-                          user=sql_username,
-                          password=sql_password,
-                          database=sql_local_database,
-                          port=sql_port)
+                    user=sql_username,
+                    password=sql_password,
+                    database=sql_local_database,
+                    port=sql_port)
     return client
 
 
@@ -76,14 +77,19 @@ app.layout = html.Div([
     dcc.Dropdown(
         id='dropdown',
         options=[{'label': i, 'value': i} for i in
-                 ['Средняя зарплата по городам',
+                 ['Средняя зарплата за последние месяцы',
                   'Средняя зарплата в зависимости от опыта',
-                  'Средняя зарплата по графику работы'
+                  'Средняя зарплата по графику работы',
+                  'Работодатели с большим количеством открытых вакансий',
+                  'Работодатели с высокой заработной платой',
+                  'Распределение высокой заработной платы'
                   ]],
-        value='Средняя зарплата по городам'
+        value='Средняя зарплата за последние месяцы',
+        clearable=False
     ),
-    dcc.Graph(id="graph"),
-])
+    dcc.Graph(id="graph", style={'display': 'inline-block', 'width': '100%', 'height': '100%'}),
+],
+    style={'display': 'inline-block', 'width': '100%', 'height': '100%'})
 
 
 @app.callback(dash.dependencies.Output('graph', 'figure'),
@@ -95,12 +101,18 @@ def display_value(task, city):
     open_remote_db()
     # open_local_db()
 
-    if task == 'Средняя зарплата по городам':
-        fig = dependence_wages_city(client=client, city_name=city)
+    if task == 'Средняя зарплата за последние месяцы':
+        fig = dependence_wages_city(client=client, city_name=city, cities=cities)
     elif task == 'Средняя зарплата в зависимости от опыта':
-        fig = experience_by_salary(client=client, city_name=city)
+        fig = experience_by_salary(client=client, city_name=city, cities=cities)
     elif task == 'Средняя зарплата по графику работы':
-        fig = schedule_by_salary(client=client, city_name=city)
+        fig = schedule_by_salary(client=client, city_name=city, cities=cities)
+    elif task == 'Работодатели с большим количеством открытых вакансий':
+        fig = employer_by_count_vacancies(client=client, city_name=city)
+    elif task == 'Работодатели с высокой заработной платой':
+        fig = employer_by_salary(client=client, city_name=city, cities=cities)
+    elif task == 'Распределение высокой заработной платы':
+        fig = high_salary(client=client, city_name=city)
     return fig
 
 

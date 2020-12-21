@@ -14,3 +14,5 @@ CREATE TABLE headhunter_salary.vacancies
 `area_id` String,
 `area_name` String)
 ENGINE = ReplacingMergeTree ORDER BY id
+
+client = Client(host='localhost', user='default', password='', port='9000', database='hh')
