@@ -9,7 +9,7 @@ import paramiko
 import sshtunnel
 from clickhouse_driver import Client
 
-from scripts.analyze import salary_by_city, experience_by_salary, dependence_wages_city, experience_by_salary_city
+from scripts.analyze import experience_by_salary, dependence_wages_city, schedule_by_salary
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -22,6 +22,7 @@ sql_hostname = 'localhost'
 sql_username = 'default'
 sql_password = ''
 sql_main_database = 'hh_analyze'
+sql_local_database = 'headhunter_salary'
 sql_port = 9000
 
 ssh_host = 'ec2-3-20-222-181.us-east-2.compute.amazonaws.com'
@@ -54,21 +55,30 @@ def open_remote_db():
     return client
 
 
+def open_local_db():
+    global client
+    client = Client(host='localhost',
+                          user=sql_username,
+                          password=sql_password,
+                          database=sql_local_database,
+                          port=sql_port)
+    return client
+
+
 app.layout = html.Div([
     html.H2('Job Analysis at Headhunter'),
     dcc.Dropdown(
         id='city',
         options=[{'label': i, 'value': i} for i in
                  cities],
-        value='Москва'
+        value=''
     ),
     dcc.Dropdown(
         id='dropdown',
         options=[{'label': i, 'value': i} for i in
                  ['Средняя зарплата по городам',
-                  'Средняя зарплата по определенному городу',
                   'Средняя зарплата в зависимости от опыта',
-                  'Средняя зарплата в зависимости от опыта по городу'
+                  'Средняя зарплата по графику работы'
                   ]],
         value='Средняя зарплата по городам'
     ),
@@ -83,15 +93,14 @@ def display_value(task, city):
     open_ssh_tunnel()
     tunnel.start()
     open_remote_db()
+    # open_local_db()
 
     if task == 'Средняя зарплата по городам':
-        fig = dependence_wages_city(client=client)
-    elif task == 'Средняя зарплата по определенному городу':
-        fig = salary_by_city(client=client, city_name=city)
+        fig = dependence_wages_city(client=client, city_name=city)
     elif task == 'Средняя зарплата в зависимости от опыта':
-        fig = experience_by_salary(client=client)
-    elif task == 'Средняя зарплата в зависимости от опыта по городу':
-        fig = experience_by_salary_city(client=client, city_name=city)
+        fig = experience_by_salary(client=client, city_name=city)
+    elif task == 'Средняя зарплата по графику работы':
+        fig = schedule_by_salary(client=client, city_name=city)
     return fig
 
 
