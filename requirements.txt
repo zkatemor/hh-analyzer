@@ -74,4 +74,3 @@ urllib3==1.25.11
 webencodings==0.5.1
 Werkzeug==1.0.1
 wordcloud==1.8.1
-yadisk==1.2.14
