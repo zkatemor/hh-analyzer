@@ -1,6 +1,8 @@
+"""
+Веб-приложение
+"""
 import logging
-import os
-
+#import os
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -13,58 +15,62 @@ from scripts.analyze import experience_by_salary, dependence_wages_city, schedul
     employer_by_count_vacancies, employer_by_salary, high_salary, vacancies_by_count, vacancies_by_salary, \
     employment_graph, employment_by_salary
 
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 server = app.server
 
-mypkey = paramiko.RSAKey.from_private_key_file('settings/aws_key.cer')
-sql_hostname = 'localhost'
-sql_username = 'default'
-sql_password = ''
-sql_main_database = 'hh_analyze'
-sql_local_database = 'headhunter_salary'
-sql_port = 9000
+mypkey = paramiko.RSAKey.from_private_key_file('settings/aws_key.pem')
+SQL_HOSTNAME = 'localhost'
+SQL_USERNAME = 'default'
+SQL_PASSWORD = ''
+SQL_MAIN_DATABASE = 'hh_analyze'
+SQL_LOCAL_DATABASE = 'headhunter_salary'
+SQL_PORT = 9000
 
-ssh_host = 'ec2-3-20-222-181.us-east-2.compute.amazonaws.com'
-ssh_user = 'ubuntu'
-ssh_port = 22
+SSH_HOST = 'ec2-3-20-222-181.us-east-2.compute.amazonaws.com'
+SSH_USER = 'ubuntu'
+SSH_PORT = 22
 
 cities = pd.read_csv('settings/cities.csv')['city']
 
-
 def open_ssh_tunnel():
-    global tunnel
+    """ SSH tunnel """
+    global TUNNEL
     sshtunnel.DEFAULT_LOGLEVEL = logging.DEBUG
-    tunnel = sshtunnel.SSHTunnelForwarder(
-        (ssh_host, ssh_port),
-        ssh_username=ssh_user,
+    TUNNEL = sshtunnel.SSHTunnelForwarder(
+        (SSH_HOST, SSH_PORT),
+        ssh_username=SSH_USER,
         ssh_pkey=mypkey,
         ssh_password='',
-        remote_bind_address=(sql_hostname, sql_port)
+        remote_bind_address=(SQL_HOSTNAME, SQL_PORT)
     )
-    return tunnel
+    return TUNNEL
 
 
 def open_remote_db():
-    global client
-    client = Client(host='localhost',
-                    user=sql_username,
-                    password=sql_password,
-                    database=sql_main_database,
-                    port=tunnel.local_bind_port)
-    return client
+    """ remote database """
+    #open_ssh_tunnel()
+    global CLIENT
+    CLIENT = Client(host='localhost',
+                    user=SQL_USERNAME,
+                    password=SQL_PASSWORD,
+                    database=SQL_MAIN_DATABASE,
+                    port=TUNNEL.local_bind_port)
+    return CLIENT
 
 
 def open_local_db():
-    global client
-    client = Client(host='localhost',
-                    user=sql_username,
-                    password=sql_password,
-                    database=sql_local_database,
-                    port=sql_port)
-    return client
+    """ open local database """
+    global CLIENT
+    CLIENT = Client(host='localhost',
+                    user=SQL_USERNAME,
+                    password=SQL_PASSWORD,
+                    database=SQL_LOCAL_DATABASE,
+                    port=SQL_PORT)
+    return CLIENT
 
 
 app.layout = html.Div([
@@ -101,31 +107,32 @@ app.layout = html.Div([
               [dash.dependencies.Input('dropdown', 'value'),
                dash.dependencies.Input('city', 'value')])
 def display_value(task, city):
+    """ display values """
     open_ssh_tunnel()
-    tunnel.start()
+    TUNNEL.start()
     open_remote_db()
-    # open_local_db()
+    #open_local_db()
 
     if task == 'Средняя зарплата за последние месяцы':
-        fig = dependence_wages_city(client=client, city_name=city, cities=cities)
+        fig = dependence_wages_city(client=CLIENT, city_name=city, cities=cities)
     elif task == 'Средняя зарплата в зависимости от опыта':
-        fig = experience_by_salary(client=client, city_name=city, cities=cities)
+        fig = experience_by_salary(client=CLIENT, city_name=city, cities=cities)
     elif task == 'Средняя зарплата в зависимости от графика работы':
-        fig = schedule_by_salary(client=client, city_name=city, cities=cities)
+        fig = schedule_by_salary(client=CLIENT, city_name=city, cities=cities)
     elif task == 'Работодатели с большим количеством открытых вакансий':
-        fig = employer_by_count_vacancies(client=client, city_name=city)
+        fig = employer_by_count_vacancies(client=CLIENT, city_name=city)
     elif task == 'Работодатели с высокой заработной платой':
-        fig = employer_by_salary(client=client, city_name=city, cities=cities)
+        fig = employer_by_salary(client=CLIENT, city_name=city, cities=cities)
     elif task == 'Распределение высокой заработной платы':
-        fig = high_salary(client=client, city_name=city)
+        fig = high_salary(client=CLIENT, city_name=city)
     elif task == 'Наиболее востребованные вакансии':
-        fig = vacancies_by_count(client=client, city_name=city, cities=cities)
+        fig = vacancies_by_count(client=CLIENT, city_name=city, cities=cities)
     elif task == 'Наиболее оплачиваемые вакансии':
-        fig = vacancies_by_salary(client=client, city_name=city, cities=cities)
+        fig = vacancies_by_salary(client=CLIENT, city_name=city, cities=cities)
     elif task == 'Изменение зарплаты по месяцам в завимисости от типа занятости':
-        fig = employment_graph(client=client, city_name=city, cities=cities)
+        fig = employment_graph(client=CLIENT, city_name=city, cities=cities)
     elif task == 'Средняя зарплата в зависимости от типа занятости':
-        fig = employment_by_salary(client=client, city_name=city, cities=cities)
+        fig = employment_by_salary(client=CLIENT, city_name=city, cities=cities)
     return fig
 
 

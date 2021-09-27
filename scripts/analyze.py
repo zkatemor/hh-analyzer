@@ -1,8 +1,11 @@
+"""
+Анализ вакансий и представление в диаграммы
+"""
 import pandas as pd
 import plotly.express as px
-import matplotlib.pyplot as plt
 import plotly.graph_objects as go
-from clickhouse_driver import Client
+import matplotlib.pyplot as plt
+#from clickhouse_driver import Client
 from wordcloud import WordCloud, STOPWORDS
 
 
@@ -14,9 +17,9 @@ def dependence_wages_city(client, city_name, cities):
             f"WHERE city='{city_name}' "
             f"GROUP BY date_local HAVING salary <= 1000000")
 
-        df = pd.DataFrame(data, columns=['created_at', 'salary'])
+        data_frame = pd.DataFrame(data, columns=['created_at', 'salary'])
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df['created_at'], y=df['salary'],
+        fig.add_trace(go.Scatter(x=data_frame['created_at'], y=data_frame['salary'],
                                  mode='lines+markers',
                                  name=f'Средняя зарплата, {city_name}',
                                  line_shape='spline'))
@@ -26,24 +29,24 @@ def dependence_wages_city(client, city_name, cities):
             f"where city in {tuple(cities)}"
             f"GROUP BY date_local")
 
-        df = pd.DataFrame(data, columns=['created_at', 'salary'])
+        data_frame = pd.DataFrame(data, columns=['created_at', 'salary'])
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df['created_at'], y=df['salary'],
+        fig.add_trace(go.Scatter(x=data_frame['created_at'], y=data_frame['salary'],
                                  mode='lines+markers',
-                                 name=f'Средняя зарплата',
+                                 name='Средняя зарплата',
                                  line_shape='spline'))
 
     return fig
 
 
-def word_cloud(client, cities):
+def word_cloud(client): # def word_cloud(client, cities):
     """ Облако слов для высокооплачиваемых вакансий """
     data = client.execute(
-        f"SELECT name, avg(salary_from + salary_to) as salary FROM vacancies "
-        f"GROUP BY name HAVING salary >= 500000 and salary <= 1000000")
+        "SELECT name, avg(salary_from + salary_to) as salary FROM vacancies "
+        "GROUP BY name HAVING salary >= 500000 and salary <= 1000000")
 
-    df = pd.DataFrame(data, columns=['name', 'salary'])
-    text = df['name'].values
+    data_frame = pd.DataFrame(data, columns=['name', 'salary'])
+    text = data_frame['name'].values
 
     wordcloud = WordCloud(background_color='white', stopwords=set(STOPWORDS)).generate(str(text))
 
@@ -59,21 +62,21 @@ def experience_by_salary(client, city_name, cities):
             f"SELECT experience, avg(salary_from + salary_to) as salary FROM vacancies "
             f"WHERE city='{city_name}' "
             f"GROUP BY experience")
-        df = pd.DataFrame(data, columns=['experience', 'salary'])
-        fig = px.bar(df, x="experience", y="salary", title=f"Experience, {city_name}")
-        return fig
+        data_frame = pd.DataFrame(data, columns=['experience', 'salary'])
+        fig = px.bar(data_frame, x="experience", y="salary", title=f"Experience, {city_name}")
+        #return fig
     else:
         data = client.execute(
             f"SELECT city, experience, round(avg(salary_from + salary_to)) as salary FROM vacancies "
             f"where city in {tuple(cities[:30])}"
             f"GROUP BY city, experience order by salary")
-        df = pd.DataFrame(data, columns=['city', 'experience', 'salary'])
-        print(df)
+        data_frame = pd.DataFrame(data, columns=['city', 'experience', 'salary'])
+        print(data_frame)
 
-        df_1 = df.loc[df['experience'] == 'Нет опыта']
-        df_2 = df.loc[df['experience'] == 'От 1 года до 3 лет']
-        df_3 = df.loc[df['experience'] == 'От 3 до 6 лет']
-        df_4 = df.loc[df['experience'] == 'Более 6 лет']
+        df_1 = data_frame.loc[data_frame['experience'] == 'Нет опыта']
+        df_2 = data_frame.loc[data_frame['experience'] == 'От 1 года до 3 лет']
+        df_3 = data_frame.loc[data_frame['experience'] == 'От 3 до 6 лет']
+        df_4 = data_frame.loc[data_frame['experience'] == 'Более 6 лет']
 
         fig = go.Figure()
         fig.add_trace(go.Bar(
@@ -129,15 +132,15 @@ def schedule_by_salary(client, city_name, cities):
             f"where city in {tuple(cities[:30])}"
             f"GROUP BY city, schedule ORDER BY salary"
         )
-        df = pd.DataFrame(data, columns=['city', 'schedule', 'salary'])
-        df = df.dropna()
-        print(df)
+        data_frame = pd.DataFrame(data, columns=['city', 'schedule', 'salary'])
+        data_frame = data_frame.dropna()
+        print(data_frame)
 
-        df_1 = df.loc[df['schedule'] == 'Полный день']
-        df_2 = df.loc[df['schedule'] == 'Удаленная работа']
-        df_3 = df.loc[df['schedule'] == 'Гибкий график']
-        df_4 = df.loc[df['schedule'] == 'Сменный график']
-        df_5 = df.loc[df['schedule'] == 'Вахтовый метод']
+        df_1 = data_frame.loc[data_frame['schedule'] == 'Полный день']
+        df_2 = data_frame.loc[data_frame['schedule'] == 'Удаленная работа']
+        df_3 = data_frame.loc[data_frame['schedule'] == 'Гибкий график']
+        df_4 = data_frame.loc[data_frame['schedule'] == 'Сменный график']
+        df_5 = data_frame.loc[data_frame['schedule'] == 'Вахтовый метод']
 
         fig = go.Figure()
         fig.add_trace(go.Bar(
@@ -199,9 +202,9 @@ def schedule_by_salary(client, city_name, cities):
             f"GROUP BY schedule"
         )
         print(data)
-        df = pd.DataFrame(data, columns=['schedule', 'salary'])
-        print(df)
-        fig = px.bar(df, x="schedule", y="salary", title=f"Schedule, {city_name}")
+        data_frame = pd.DataFrame(data, columns=['schedule', 'salary'])
+        print(data_frame)
+        fig = px.bar(data_frame, x="schedule", y="salary", title=f"Schedule, {city_name}")
 
     return fig
 
@@ -214,15 +217,15 @@ def employment_by_salary(client, city_name, cities):
             f"where city in {tuple(cities[:30])}"
             f"GROUP BY city, employment ORDER BY salary"
         )
-        df = pd.DataFrame(data, columns=['city', 'employment', 'salary'])
-        df = df.dropna()
-        print(df)
+        data_frame = pd.DataFrame(data, columns=['city', 'employment', 'salary'])
+        data_frame = data_frame.dropna()
+        print(data_frame)
 
-        df_1 = df.loc[df['employment'] == 'Частичная занятость']
-        df_2 = df.loc[df['employment'] == 'Полная занятость']
-        df_3 = df.loc[df['employment'] == 'Проектная работа']
-        df_4 = df.loc[df['employment'] == 'Волонтерство']
-        df_5 = df.loc[df['employment'] == 'Стажировка']
+        df_1 = data_frame.loc[data_frame['employment'] == 'Частичная занятость']
+        df_2 = data_frame.loc[data_frame['employment'] == 'Полная занятость']
+        df_3 = data_frame.loc[data_frame['employment'] == 'Проектная работа']
+        df_4 = data_frame.loc[data_frame['employment'] == 'Волонтерство']
+        df_5 = data_frame.loc[data_frame['employment'] == 'Стажировка']
 
         fig = go.Figure()
         fig.add_trace(go.Bar(
@@ -284,12 +287,13 @@ def employment_by_salary(client, city_name, cities):
             f"GROUP BY employment"
         )
         print(data)
-        df = pd.DataFrame(data, columns=['employment', 'salary'])
-        print(df)
-        fig = px.bar(df, x="employment", y="salary")
+        data_frame = pd.DataFrame(data, columns=['employment', 'salary'])
+        print(data_frame)
+        fig = px.bar(data_frame, x="employment", y="salary")
 
     return fig
 
+############
 
 def employer_by_count_vacancies(client, city_name):
     """Работодатели с большим количеством открытых вакансий"""
@@ -304,9 +308,9 @@ def employer_by_count_vacancies(client, city_name):
             f"where city='{city_name}'"
             f"group by employer order by count_vacancies desc limit 15"
         )
-    df = pd.DataFrame(data, columns=['count', 'employer'])
-    print(df)
-    fig = go.Figure(data=[go.Pie(labels=df['employer'], values=df['count'], hole=.3)])
+    data_frame = pd.DataFrame(data, columns=['count', 'employer'])
+    print(data_frame)
+    fig = go.Figure(data=[go.Pie(labels=data_frame['employer'], values=data_frame['count'], hole=.3)])
     fig.update_traces(textposition='inside', textinfo='percent+label')
 
     return fig
@@ -327,50 +331,50 @@ def employer_by_salary(client, city_name, cities):
             f"group by employer order by salary desc limit 15"
         )
 
-    df = pd.DataFrame(data, columns=['count', 'employer', 'salary'])
-    df = df.dropna()
-    print(df)
-    fig = go.Figure(data=[go.Pie(labels=df['employer'], values=df['salary'], hole=.3)])
+    data_frame = pd.DataFrame(data, columns=['count', 'employer', 'salary'])
+    data_frame = data_frame.dropna()
+    print(data_frame)
+    fig = go.Figure(data=[go.Pie(labels=data_frame['employer'], values=data_frame['salary'], hole=.3)])
     fig.update_traces(textposition='inside', textinfo='percent+label')
 
     return fig
 
 
-def popular_city_salary(client, cities):
+def popular_city_salary(client): #def popular_city_salary(client, cities):
     """Средняя заработная плата в городах"""
     data = client.execute(
         'select count(id) as count_vacancies, city from headhunter_salary.vacancies '
         'group by city having count_vacancies>=1000 order by count_vacancies desc')
 
-    df = pd.DataFrame(data, columns=['count', 'city'])
-    df['city'].to_csv('cities.csv')
+    data_frame = pd.DataFrame(data, columns=['count', 'city'])
+    data_frame['city'].to_csv('cities.csv')
 
 
 def high_salary(client, city_name):
     """Распределение высокой заработной платы"""
     if not city_name:
-        w = f""
+        city = "" #f""
     else:
-        w = f" and city ='{city_name}'"
+        city = f" and city ='{city_name}'"
     data_100 = client.execute(
         f"select count(id) as count_vacancies FROM vacancies "
-        f"WHERE currency='RUR' and salary_from >= 80000 and salary_to < 100000{w}"
+        f"WHERE currency='RUR' and salary_from >= 80000 and salary_to < 100000{city}"
     )
     data_150 = client.execute(
         f"select count(id) as count_vacancies FROM vacancies "
-        f"WHERE currency='RUR' and salary_from >= 100000 and salary_to < 150000{w}"
+        f"WHERE currency='RUR' and salary_from >= 100000 and salary_to < 150000{city}"
     )
     data_200 = client.execute(
         f"select count(id) as count_vacancies FROM vacancies "
-        f"WHERE currency='RUR' and salary_from >= 150000 and salary_to < 200000{w}"
+        f"WHERE currency='RUR' and salary_from >= 150000 and salary_to < 200000{city}"
     )
     data_250 = client.execute(
         f"select count(id) as count_vacancies FROM vacancies "
-        f"WHERE currency='RUR' and salary_from >= 200000 and salary_to < 250000{w}"
+        f"WHERE currency='RUR' and salary_from >= 200000 and salary_to < 250000{city}"
     )
     data_300 = client.execute(
         f"select count(id) as count_vacancies FROM vacancies "
-        f"WHERE currency='RUR' and salary_from >= 250000 and salary_to >= 250000{w}"
+        f"WHERE currency='RUR' and salary_from >= 250000 and salary_to >= 250000{city}"
     )
     labels = ['80-100тыс.', '100-150тыс.', '150-200тыс.', '200-250тыс.', '250тыс. и более']
     values = [data_100[0][0], data_150[0][0], data_200[0][0], data_250[0][0], data_300[0][0]]
@@ -394,9 +398,9 @@ def vacancies_by_count(client, city_name, cities):
             f"group by name order by count_vacancies desc limit 10"
         )
 
-    df = pd.DataFrame(data, columns=['count', 'vacancies'])
-    print(df)
-    fig = go.Figure(data=[go.Pie(labels=df['vacancies'], values=df['count'], hole=.3)])
+    data_frame = pd.DataFrame(data, columns=['count', 'vacancies'])
+    print(data_frame)
+    fig = go.Figure(data=[go.Pie(labels=data_frame['vacancies'], values=data_frame['count'], hole=.3)])
     fig.update_traces(textposition='inside', textinfo='percent+label')
 
     return fig
@@ -417,9 +421,9 @@ def vacancies_by_salary(client, city_name, cities):
             f"group by name having count_vacancies > 2 order by salary desc limit 10"
         )
 
-    df = pd.DataFrame(data, columns=['count', 'vacancies', 'salary'])
-    print(df)
-    fig = go.Figure(data=[go.Pie(labels=df['vacancies'], values=df['salary'], hole=.3)])
+    data_frame = pd.DataFrame(data, columns=['count', 'vacancies', 'salary'])
+    print(data_frame)
+    fig = go.Figure(data=[go.Pie(labels=data_frame['vacancies'], values=data_frame['salary'], hole=.3)])
     fig.update_traces(textposition='inside', textinfo='percent+label')
 
     return fig
@@ -438,14 +442,14 @@ def employment_graph(client, city_name, cities):
             f"SELECT employment, toDate(created_at) as date_local, avg(salary_from + salary_to) as salary FROM vacancies "
             f"where city in {tuple(cities)} GROUP BY date_local, employment ORDER BY date_local")
 
-    df = pd.DataFrame(data, columns=['employment', 'created_at', 'salary'])
-    df = df.dropna()
+    data_frame = pd.DataFrame(data, columns=['employment', 'created_at', 'salary'])
+    data_frame = data_frame.dropna()
 
-    df_1 = df.loc[df['employment'] == 'Частичная занятость']
-    df_2 = df.loc[df['employment'] == 'Полная занятость']
-    df_3 = df.loc[df['employment'] == 'Проектная работа']
-    df_4 = df.loc[df['employment'] == 'Волонтерство']
-    df_5 = df.loc[df['employment'] == 'Стажировка']
+    df_1 = data_frame.loc[data_frame['employment'] == 'Частичная занятость']
+    df_2 = data_frame.loc[data_frame['employment'] == 'Полная занятость']
+    df_3 = data_frame.loc[data_frame['employment'] == 'Проектная работа']
+    df_4 = data_frame.loc[data_frame['employment'] == 'Волонтерство']
+    df_5 = data_frame.loc[data_frame['employment'] == 'Стажировка']
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_1['created_at'], y=df_1['salary'], name="Частичная занятость",
