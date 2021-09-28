@@ -53,6 +53,7 @@ def open_ssh_tunnel():
 def open_remote_db():
     """ remote database """
     #open_ssh_tunnel()
+
     global CLIENT
     CLIENT = Client(host='localhost',
                     user=SQL_USERNAME,
